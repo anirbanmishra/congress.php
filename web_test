@@ -15,6 +15,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.min.js"></script>
     <script src="dirPagination.js"></script>
+    <script src="scripts.js"></script>
 
 </head>
 <body>
@@ -32,11 +33,11 @@
         </div>
     </div><!-- bs-example-navbar-collapse-1 -->
 </nav>
-<div id="wrapper">
+<div id="wrapper" ng-controller="MyController" class="my-controller">
     <div id="sidebar-wrapper">
         <ul class="sidebar-nav nav-pills nav-stacked" id="menu">
             <li class = "active">
-                <a href="#legislator" onclick="legislator()"><span class="fa-stack fa-lg pull-left"><i class="fa fa-user fa-stack-1x "></i></span>Legislators</a>
+                <a href="#legislate" ng-click="getLegislators()" ><span class="fa-stack fa-lg pull-left"><i class="fa fa-user fa-stack-1x "></i></span>Legislators</a>
             </li>
             <li>
                 <a href="#bills" onclick="bills()"> <span class="fa-stack fa-lg pull-left"><i class="fa fa-file-o fa-stack-1x "></i></span>Bills</a>
@@ -50,124 +51,120 @@
         </ul>
     </div><!-- /#sidebar-wrapper -->
     <!-- Page Content -->
-    <div id="legislator" class="legislator">
-    <div id="page-content-wrapper" >
-        <div class="container-fluid xyz">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="bs-component" ng-controller="listdata">
-                        <script type="text/javascript">
-                            function legislator(){
-                            var app = angular.module('myApp', ['angularUtils.directives.dirPagination']);
-                            app.controller('listdata', function($scope, $http) {
-                                $http({
-                                    method: 'GET',
-                                    url: 'getData.php',
-                                    params : {value:'legislator'}
-                                }).then(function(response){
-                                    legislators=response.data.results;
-                                    $scope.users=[]
-                                    for (var i=0;i<legislators.length;i++) {
-                                        if (legislators[i]["last_name"] != "")
-                                            last_name = legislators[i]["last_name"]
-                                        else
-                                            last_name = ""
-                                        if (legislators[i]["first_name"] != "")
-                                            first_name = legislators[i]["first_name"]
-                                        else
-                                            first_name = ""
-                                        if (legislators[i]["party"] != "")
-                                            party = legislators[i]["party"]
-                                        else
-                                            party = "NA"
-                                        if (legislators[i]["chamber"] != "")
-                                            chamber = legislators[i]["chamber"]
-                                        else
-                                            chamber = "NA"
-                                        if (legislators[i]["district"] != null)
-                                            district = "District"+' '+legislators[i]["district"]
-                                        else
-                                            district = "NA"
-                                        if (legislators[i]["state"] != "")
-                                            state = legislators[i]["state"]
-                                        else
-                                            state = "NA"
-                                        var name = last_name + ',' + first_name;
-                                        if(party=="R")
-                                            party="r.png";
-                                        else
-                                            party="d.png";
-                                        if(chamber == "senate"){
-                                            chamber="Senate"
-                                            chamber_type="s.svg";}
-                                        else{
-                                            chamber="House"
-                                            chamber_type="h.png";}
-                                        $scope.users.push({
-                                            party_name:party,
-                                            fullname:name,
-                                            chamber_name:chamber,
-                                            district_name:district,
-                                            chamber_type:chamber_type,
-                                            state_name:state});
-                                    }
-
-                                });
-                            });}
-                        </script>
-                        <div class="container">
-                            <h2>Legislaotrs</h2>
-                            <ul class="nav nav-tabs">
-                                <li><a href="#" class="active">By State</a></li>
-                                <li><a href="#">House</a></li>
-                                <li><a href="#">Senate</a></li></ul>
+    <div id="legislate" class="legislate" style="margin-top: -30px;">
+        <div id="page-content-wrapper" >
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div>
+                            <div class="tabs">
+                                <h3>Legislaotrs</h3>
+                                <ul class="nav nav-tabs">
+                                    <li class="active"><a href="#ByState" onclick="showDiv('ByState','ByHouse','BySenate')">By State</a></li>
+                                    <li><a href="#ByHouse" onclick="showDiv('ByHouse','ByState','BySenate')">House</a></li>
+                                    <li><a href="#BySenate" onclick="showDiv('BySenate','ByState','ByHouse')">Senate</a></li></ul>
+                            </div> 
+                            <div id="ByState">
+                                <div class="search" style="float: right;">
+                                    <form class="form-inline">
+                                        <div class="form-group">
+                                            <label>Search</label>
+                                            <input type="text" ng-model="search" class="form-control" placeholder="Search">
+                                        </div>
+                                    </form>
+                                     </div>
+                                <table class="table table-striped table-hover"> 
+                                    <thead> 
+                                    <tr> 
+                                        <th>Party</th> <th>Name</th> <th>Chamber</th> <th>District</th> <th>State</th> </tr> 
+                                    </thead> 
+                                    <tbody> 
+                                    <tr dir-paginate="user in users|orderBy:['state_name','fullname']|filter:search|itemsPerPage:10"> 
+                                        <td> <img src="{{user.party_name}}" style="max-height: 10%;max-width: 10%;"/> </td> 
+                                        <td>{{user.fullname}}</td> 
+                                        <td > <img src="{{user.chamber_type}}" style="max-height: 8%;max-width: 7%;"/>{{user.chamber_name}} </td> 
+                                        <td>{{user.district_name}}</td> 
+                                        <td>{{user.state_name}}</td> 
+                                        <td>  <button type="button" class="btn btn-primary">View Details</button></td> 
+                                    </tr> 
+                                    </tbody> 
+                                </table> 
                             </div>
-                        <form class="form-inline">
-                            <div class="form-group">
-                                <label >Search</label>
-                                <input type="text" ng-model="search" class="form-control" placeholder="Search">
+                            <div id="ByHouse" style="display: none;">
+                                <div class="search" style="float: right;">
+                                    <form class="form-inline">
+                                        <div class="form-group">
+                                            <label>Search</label>
+                                            <input type="text" ng-model="search" class="form-control" placeholder="Search">
+                                        </div>
+                                    </form>
+                                     </div>
+                                <table class="table table-striped table-hover"> 
+                                    <thead> 
+                                    <tr> 
+                                        <th>Party</th> <th>Name</th> <th>Chamber</th> <th>District</th> <th>State</th> </tr> 
+                                    </thead> 
+                                    <tbody> 
+                                    <tr dir-paginate="user in house|orderBy:['fullname']|filter:search|itemsPerPage:10"> 
+                                        <td> <img src="{{user.party_name}}" style="max-height: 10%;max-width: 10%;"/> </td> 
+                                        <td>{{user.fullname}}</td> 
+                                        <td > <img src="{{user.chamber_type}}" style="max-height: 8%;max-width: 7%;"/>{{user.chamber_name}} </td> 
+                                        <td>{{user.district_name}}</td> 
+                                        <td>{{user.state_name}}</td> 
+                                        <td>  <button type="button" class="btn btn-primary">View Details</button></td> 
+                                    </tr> 
+                                    </tbody> 
+                                </table> 
                             </div>
-                        </form>
-                        <table class="table table-striped table-hover">
-                            <thead>
-                            <tr>
-                                <th>Party</th>
-                                <th>Name</th>
-                                <th>Chamber</th>
-                                <th>District</th>
-                                <th>State</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr dir-paginate="user in users|filter:search|itemsPerPage:10">
-                                <td> <img src="{{user.party_name}}" style="max-height: 10%;max-width: 10%;"/> </td>
-                                <td>{{user.fullname}}</td>
-                                <td > <img src="{{user.chamber_type}}" style="max-height: 8%;max-width: 7%;"/>{{user.chamber_name}} </td>
-                                <td>{{user.district_name}}</td>
-                                <td>{{user.state_name}}</td>
-                                <td>  <button type="button" class="btn btn-primary">View Details</button></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <dir-pagination-controls
-                                max-size="5"
-                                direction-links="true"
-                                boundary-links="true" >
-                        </dir-pagination-controls>
+                            <div id="BySenate" style="display: none">
+                                <div class="search" style="float: right;">
+                                    <form class="form-inline">
+                                        <div class="form-group">
+                                            <label>Search</label>
+                                            <input type="text" ng-model="search" class="form-control" placeholder="Search">
+                                        </div>
+                                    </form>
+                                     </div>
+                                <table class="table table-striped table-hover"> 
+                                    <thead> 
+                                    <tr> 
+                                        <th>Party</th> <th>Name</th> <th>Chamber</th> <th>District</th> <th>State</th> </tr> 
+                                    </thead> 
+                                    <tbody> 
+                                    <tr dir-paginate="user in senate|orderBy:['fullname']|filter:search|itemsPerPage:10"> 
+                                        <td> <img src="{{user.party_name}}" style="max-height: 10%;max-width: 10%;"/> </td> 
+                                        <td>{{user.fullname}}</td> 
+                                        <td > <img src="{{user.chamber_type}}" style="max-height: 8%;max-width: 7%;"/>{{user.chamber_name}} </td> 
+                                        <td>{{user.district_name}}</td> 
+                                        <td>{{user.state_name}}</td> 
+                                        <td>  <button type="button" class="btn btn-primary">View Details</button></td> 
+                                    </tr> 
+                                    </tbody> 
+                                </table> 
+                            </div>
+                            <div id="controls" class="controls" align="center">
+                                <dir-pagination-controls
+                                        max-size="5"
+                                        direction-links="true"
+                                        boundary-links="true" >
+                                </dir-pagination-controls>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
-    <div id="bills" class="bills">
-        <script>
-            function bills(){
-            $(".legislator").empty();
+</div>
+</div>
+<div id="bills" class="bills">
+    <script>
+        function bills(){
+            $(".legislate").empty();
             content="<h1>asdasdsadasdaS</h1>"
             $(".bills").append(content)}
-        </script>
-    </div>
+    </script>
+</div>
 </div>
 
 </body>
