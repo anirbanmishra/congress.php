@@ -1,0 +1,177 @@
+$scope.getLegislatorDetails=function(eve){
+        bioguide_value=eve;
+        var to_check="legislator:"+bioguide_value;
+        var class_list =$(".favorite_star").attr('class');
+        var index1=class_list.indexOf('fa-star-o');
+        var index2=class_list.indexOf('fa-star');
+        if (index1 >= 0)
+            $(".favorite_star").removeClass('fa-star-o')
+        if (index2 >= 0)
+            $(".favorite_star").removeClass('fa-star')
+        if (localStorage.length == 0)
+            $(".favorite_star").addClass('fa-star-o');
+        var flag=false;
+        for (var i=0;i<localStorage.length;i++) {
+            var stored = localStorage.getItem(i.toString());
+            if (stored == to_check && !flag) {
+                $(".favorite_star").addClass('fa-star');
+                flag = true;
+            }
+        }
+        if (!flag){
+            $(".favorite_star").addClass('fa-star-o');
+        }
+        $scope.detail=[]
+        details=[]
+        bills=[]
+        $scope.bills=[]
+        committees=[]
+        $scope.committees=[]
+        $http({
+            method: 'GET',
+            url: 'getData.php',
+            params: {bioguide: bioguide_value}
+        }).then(function (response) {
+            details = response.data.results[0];
+            image="https://theunitedstates.io/images/congress/original/"+bioguide_value+".jpg"
+            name=details["title"]+'. '+details["last_name"]+','+details["first_name"]
+            var date1 = new Date(details["term_start"]);
+            var date2 = new Date(details["term_end"]);
+            var progress=Math.round((date1.getTime()/date2.getTime())*100);
+            var date3=new Date(details["birthday"]);
+            var month = new Array();
+            month[0] = "Jan";
+            month[1] = "Feb";
+            month[2] = "Mar";
+            month[3] = "Apr";
+            month[4] = "May";
+            month[5] = "Jun";
+            month[6] = "Jul";
+            month[7] = "Aug";
+            month[8] = "Sep";
+            month[9] = "Oct";
+            month[10] = "Nov";
+            month[11] = "Dec";
+            var n = month[date3.getMonth()];
+            var birthday=(n + ' ' + date2.getDate() + ', ' +  date2.getFullYear());
+            var m=month[date1.getMonth()];
+            var start_date=(m + ' ' + date1.getDate() + ', ' +  date1.getFullYear());
+            var o=month[date2.getMonth()];
+            var end_date=(o + ' ' + date2.getDate() + ', ' +  date2.getFullYear());
+            if (details["party"] == "R"){
+                party="Republican";
+                party_symbol = "r.png";}
+            else if (details["party"] == "D"){
+                party="Democrat";
+                party_symbol = "d.png";}
+            else{
+                party="Independent";
+                party_symbol = "i.png";
+            }
+            if(details["chamber"] == "house")
+                chamber="House";
+            else
+                chamber="Senate";
+            twitter = "http://www.twitter.com/" + details["twitter_id"];
+            facebook ="http://www.facebook.com" + details["facebook_id"];
+            if($(window).width() <= 480){
+                row_span=0;}
+            else{
+                row_span=6;}
+
+            $scope.detail.push({
+                legislator_image:image,
+                fullname:name,
+                email:details["oc_email"],
+                chamber:chamber,
+                contact:details["phone"],
+                party:party,
+                start_date:start_date,
+                end_date:end_date,
+                progress:progress,
+                office:details["office"],
+                state:details["state_name"],
+                fax:details["fax"],
+                birthday:birthday,
+                twitter_id:twitter,
+                facebook_id:facebook,
+                website:details["website"],
+                party_symbol:party_symbol,
+                bioguide_id:details["bioguide_id"],
+                row_span:row_span
+            })
+        });
+        $http({
+            method: 'GET',
+            url: 'getData.php',
+            params: {bioguide_bills: bioguide_value}
+        }).then(function (response) {
+            bills = response.data.results;
+            for (var i=0;i<bills.length;i++){
+                if(bills[i]["bill_id"]!=null)
+                    bill_id=bills[i]["bill_id"]
+                else
+                    bill_id="NA"
+                if(bills[i]["chamber"]!=null)
+                    bill_chamber=bills[i]["chamber"]
+                else
+                    bill_chamber="NA"
+                if(bills[i]["bill_type"]!=null)
+                    bill_type=bills[i]["bill_type"]
+                else
+                    bill_type="NA"
+                if(bills[i]["congress"]!=null)
+                    bill_congress=bills[i]["congress"]
+                else
+                    bill_congress="NA"
+                if(bills[i]["official_title"]!=null)
+                    bill_title=bills[i]["official_title"]
+                else
+                    bill_title="NA"
+                if(bills[i]["last_version"]!=null){
+                    bill_version=bills[i]["last_version"]
+                    bill_version_url=bill_version["urls"]
+                    if (bill_version_url["pdf"]!="")
+                        bill_pdf=bill_version_url["pdf"]
+                    else
+                        bill_pdf="NA"
+                }
+                bill_type=bill_type.toUpperCase();
+                $scope.bills.push({
+                    bill_id:bill_id.toUpperCase(),
+                    bill_chamber:bill_chamber[0].toUpperCase() + bill_chamber.slice(1),
+                    bill_type:bill_type,
+                    bill_congress:bill_congress,
+                    bill_title:bill_title,
+                    bill_pdf:bill_pdf
+                })
+            }
+
+        });
+        $http({
+            method: 'GET',
+            url: 'getData.php',
+            params: {bioguide_committees: bioguide_value}
+        }).then(function (response) {
+            committees = response.data.results;
+            for (var i=0;i<committees.length;i++){
+                if(committees[i]["committee_id"]!=null)
+                    committee_id=committees[i]["committee_id"]
+                else
+                    committee_id="NA"
+                if(committees[i]["chamber"]!=null)
+                    committee_chamber=committees[i]["chamber"]
+                else
+                    committee_chamber="NA"
+                if(committees[i]["name"]!=null)
+                    committee_name=committees[i]["name"]
+                else
+                    committee_name="NA"
+                $scope.committees.push({
+                    committee_id:committee_id,
+                    committee_chamber:committee_chamber[0].toUpperCase() + committee_chamber.slice(1),
+                    committee_name:committee_name
+                })
+            }
+        });
+    }
